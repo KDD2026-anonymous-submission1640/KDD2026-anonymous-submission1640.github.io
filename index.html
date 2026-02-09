@@ -1,548 +1,1272 @@
-
 <!DOCTYPE html>
-<html>
-
-<head lang="en">
+<html lang="en">
+<head>
     <meta charset="UTF-8">
-    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSJD — Lifting the Veil of Non-Stationarity in Financial Market</title>
+    <meta name="description" content="Market-State Jump Diffusion Framework for financial price prediction in non-stationary environments. KDD 2026.">
 
-    <title>ReconFusion</title>
-
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <meta property="og:image" content="https://reconfusion.github.io/img/overview_combined.png">
-    <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1711">
-    <meta property="og:image:height" content="576">
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://reconfusion.github.io/"/>
-    <meta property="og:title" content="ReconFusion: 3D Reconstruction with Diffusion Priors" />
-    <meta property="og:description" content="3D reconstruction methods such as Neural Radiance Fields (NeRFs) excel at rendering photorealistic novel views of complex scenes. However, recovering a high-quality NeRF typically requires tens to hundreds of input images, resulting in a time-consuming capture process. We present ReconFusion to reconstruct real-world scenes using only a few photos. Our approach leverages a diffusion prior for novel view synthesis, trained on synthetic and multiview datasets, which regularizes a NeRF-based 3D reconstruction pipeline at novel camera poses beyond those captured by the set of input images. Our method synthesizes realistic geometry and texture in underconstrained regions while preserving the appearance of observed regions. We perform an extensive evaluation across various real-world datasets, including forward-facing and 360-degree scenes, demonstrating significant performance improvements over previous few-view NeRF reconstruction approaches."/>
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="ReconFusion: 3D Reconstruction with Diffusion Priors" />
-    <meta name="twitter:description" content="3D reconstruction methods such as Neural Radiance Fields (NeRFs) excel at rendering photorealistic novel views of complex scenes. However, recovering a high-quality NeRF typically requires tens to hundreds of input images, resulting in a time-consuming capture process. We present ReconFusion to reconstruct real-world scenes using only a few photos. Our approach leverages a diffusion prior for novel view synthesis, trained on synthetic and multiview datasets, which regularizes a NeRF-based 3D reconstruction pipeline at novel camera poses beyond those captured by the set of input images. Our method synthesizes realistic geometry and texture in underconstrained regions while preserving the appearance of observed regions. We perform an extensive evaluation across various real-world datasets, including forward-facing and 360-degree scenes, demonstrating significant performance improvements over previous few-view NeRF reconstruction approaches."/>
-    <meta name="twitter:image" content="https://reconfusion.github.io/img/overview_combined.png" />
-
-
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤔</text></svg>">
-
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css">
-    <link rel="stylesheet" href="css/app.css">
-	<link rel="stylesheet" href="css/fontawesome.all.min.css">
-	<link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-
-
-	<!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8ZERS5BVPS"></script>
-  <script>
-	window.dataLayer = window.dataLayer || [];
-	function gtag(){dataLayer.push(arguments);}
-	gtag('js', new Date());
-
-	gtag('config', 'G-8ZERS5BVPS');
-  </script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.3/clipboard.min.js"></script>
-    <script type="text/javascript" async
-        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
-    </script>
-	<script defer src="js/fontawesome.all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-
-    <script src="js/app.js"></script>
-    <script src="js/synced_video_selector.js"></script>
-
-</head>
-
-<body style="padding: 1%; width: 100%">
-    <div class="container-lg text-center" style="max-width: 1500px; margin: auto;" id="main">
-    <!-- <div class="container" id="main"> -->
-        <div class="row">
-            <h2 class="col-md-12 text-center">
-                <b>ReconFusion</b>: 3D Reconstruction with Diffusion Priors</br> 
-            </h2>
-        </div>
-        <div class="row text-center">
-<div class="col-md-3">
-    </div>
-            <div class="col-md-6 text-center">
-                <ul class="list-inline">
-                    <li>
-                        <a href="https://www.cs.columbia.edu/~rundi/">
-                            Rundi Wu
-                        </a><sup>1</sup>*
-                    </li>
-                    <li>
-                        <a href="http://bmild.github.io/">
-                            Ben Mildenhall
-                        </a><sup>2</sup>*
-                    </li>
-                    <li>
-                        <a href="https://henzler.github.io/">
-                            Philipp Henzler
-                        </a><sup>2</sup>
-                    </li>
-                    <li>
-                        <a href="https://keunhong.com/">
-                            Keunhong Park
-                        </a><sup>2</sup>
-                    </li>
-                    <wbr>
-                    <li>
-                        <a href="https://ruiqigao.github.io/">
-                            Ruiqi Gao
-                        </a><sup>3</sup>
-                    </li>
-                    <li>
-                        <a href="https://scholar.google.com/citations?user=_pKKv2QAAAAJ&hl=en/">
-                            Daniel Watson
-                        </a><sup>3</sup>
-                    </li>
-                    <li>
-                        <a href="https://pratulsrinivasan.github.io/">
-                            Pratul P. Srinivasan
-                        </a><sup>2</sup>
-                    </li>
-                    <li>
-                        <a href="https://dorverbin.github.io/">
-                            Dor Verbin
-                        </a><sup>2</sup>
-                    </li>
-                    <wbr>
-                    <li>
-                        <a href="https://jonbarron.info/">
-                            Jonathan T. Barron
-                        </a><sup>2</sup>
-                    </li>
-                    <li>
-                        <a href="https://poolio.github.io/">
-                            Ben Poole
-                        </a><sup>3</sup>
-                    </li>
-                    <li>
-                        <a href="https://holynski.org/">
-                            Aleksander Holynski
-                        </a><sup>2</sup>*
-                    </li>
-                    <!-- </br>Google -->
-                </ul>
-            </div>
-<div class="col-md-3">
-    </div>
-            <div class="col-md-12 text-center">
-                <sup>1</sup>Columbia University, &nbsp <sup>2</sup>Google Research, &nbsp <sup>3</sup>Google DeepMind &nbsp; &nbsp; * equal contribution
-
-            </div>
-            <div class="col-md-12 text-center">
-                CVPR 2024
-            </div> </div>
-
-
-        <div class="row text-center">
-					
-			     <span class="link-block">
-                <a href="https://arxiv.org/abs/2312.02981"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
-                </a>
-                <a href="https://drive.google.com/drive/folders/10oT2_OQ9Sjh5wlfJQoGx2y7ZKYwpgNg5?usp=sharing"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="far fa-images"></i>
-                  </span>
-                  <span>Data</span>
-                </a>
-              </span>
-			</div>
-
-
-
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <video id="teaser-video-ours" width="100%" autoplay loop muted controls>
-                  <source src="videos/teaser/wipe_4.mp4" type="video/mp4" />
-                </video>
-<!-- 
-                <video id="teaser-video-ours" width="100%" autoplay loop muted>
-                  <source src="videos/teaser/grid_ours.mp4" type="video/mp4" />
-                </video>
-                <video id="teaser-video-zipenrf" width="100%" autoplay loop muted hidden>
-                  <source src="videos/teaser/grid_zipnerf.mp4" type="video/mp4" />
-                </video>
-
-                <div class="switch-container-wrapper">
-                    <div class="switch-container">
-                        <span class="switch-label">Ours</span>
-                        <label class="switch">
-                            <input type="checkbox" id="teaserVideoSwitch" onclick="selectTeaserVideo()">
-                            <div class="slider round"></div>
-                        </label>
-                        <span class="switch-label">Zip-NeRF</span>
-                    </div>
-                </div>
-                <script>
-                    function selectTeaserVideo() {
-                      var video_ours = document.getElementById("teaser-video-ours");
-                      var video_zipnerf = document.getElementById("teaser-video-zipenrf");
-                      var videoSwitch = document.getElementById("teaserVideoSwitch");
-                      if (videoSwitch.checked) {
-                        video_zipnerf.hidden = false;
-                        video_ours.hidden = true;
-                      } else {
-                        video_zipnerf.hidden = true;
-                        video_ours.hidden = false;
-                      }
-                    }
-                </script>
- -->
-			</div>
-        </div>
-
-
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>
-                    Abstract
-                </h3>
-                <p class="text-justify">
-                    3D reconstruction methods such as Neural Radiance Fields (NeRFs) excel at rendering photorealistic novel views of complex scenes. However, recovering a high-quality NeRF typically requires tens to hundreds of input images, resulting in a time-consuming capture process. We present ReconFusion to reconstruct real-world scenes using only a few photos. Our approach leverages a diffusion prior for novel view synthesis, trained on synthetic and multiview datasets, which regularizes a NeRF-based 3D reconstruction pipeline at novel camera poses beyond those captured by the set of input images. Our method synthesizes realistic geometry and texture in underconstrained regions while preserving the appearance of observed regions. We perform an extensive evaluation across various real-world datasets, including forward-facing and 360-degree scenes, demonstrating significant performance improvements over previous few-view NeRF reconstruction approaches.
-                </p>
-            </div>
-        </div>
-        <br>
-
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>
-				  <b> <font color="#118ab2">Recon</font><font color="#ef486e">Fusion</font></b> = <font color="#118ab2">3D Reconstruction</font>  + <font color="#ef486e">Diffusion Prior</font>
-                </h3>
-                <image src="img/overview_combined.png" width=90% style="display: block; margin: auto;"></image>
-                <p class="text-justify">
-                    (a) We optimize a NeRF to minimize a reconstruction loss \(\mathcal{L}_\mathrm{recon}\) between renderings and a few input images, as well as a sample loss \(\mathcal{L}_\mathrm{sample}\) between a rendering from a random pose and an image predicted by a diffusion model for that pose. (b) To generate the sample image, we use a PixelNeRF-style model to fuse information from the input images and to render a predicted feature map corresponding to the sample view camera pose. (c) This feature map is concatenated with the noisy latent (computed from the current NeRF rendering at that pose) and is provided to a diffusion model, which additionally uses CLIP embeddings of the input images via cross-attention. The resulting decoded output sample is used to enforce an image-space loss on the corresponding NeRF rendering (\(\mathcal{L}_\mathrm{sample}\)).
-                </p>
-            </div>
-        </div><br><br>
-	<div class="row">
-		<div class="col-md-8 col-md-offset-2">
-		<h3> ReconFusion enables high-quality 3D reconstruction from few views</h3><br>
-                <video id="co3d-grid" width="100%" autoplay loop muted controls>
-                  <source src="videos/results/co3d_3x5.mp4" type="video/mp4" />
-                </video>
-                <br>
-                    <p class="text-justify" style="text-align: center;">ReconFusion generalizes to everyday scenes: the same diffusion model prior is used for <b>all</b> reconstruction results.</p>
-			</div>
-        </div>
-
-
-        <br>
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>
-				  ReconFusion outperforms other few-view NeRF methods
-                </h3><br>
-
-                <div class="text-center ">
-                    <ul class="nav nav-pills center-pills">
-                        <li class="method-pill active" data-value="zipnerf"
-                            onclick="selectCompVideo(this, activeScenePill)"><a>Zip-NeRF</a></li>
-                        <li class="method-pill" data-value="diffusionerf"
-                            onclick="selectCompVideo(this, activeScenePill)"><a>DiffusioNeRF</a></li>
-                    </ul>
-                    <ul class="nav nav-pills center-pills">
-                        <li class="method-pill" data-value="freenerf"
-                            onclick="selectCompVideo(this, activeScenePill)"><a>FreeNeRF</a></li>
-                        <li class="method-pill" data-value="simplenerf"
-                            onclick="selectCompVideo(this, activeScenePill)"><a>SimpleNeRF</a></li>
-                        <li class="method-pill" data-value="zeronvs"
-                            onclick="selectCompVideo(this, activeScenePill)"><a>ZeroNVS</a></li>
-                    </ul>
-                </div>
-
-                <script>
-                    activeMethodPill = document.querySelector('.method-pill.active-pill');
-                    activeScenePill = document.querySelector('.scene-pill.active-pill');
-                    activeModePill = document.querySelector('.mode-pill.active-pill');
-                </script>
-                
-                <div class="text-center">
-                    <div class="video-container">
-                        <video class="video" style="height: 280px; max-width: 100%;" m id="compVideo0" loop playsinline autoplay muted>
-                            <source src="videos/comparison/mipnerf360_bonsai_zipnerf_vs_ours_rgb.mp4" />
-                        </video>
-                        <video class="video" style="height: 280px; max-width: 100%;" id="compVideo1" loop playsinline autoplay muted hidden>
-                            <source src="videos/comparison/mipnerf360_bonsai_zipnerf_vs_ours_depth.mp4" />
-                        </video>
-                    </div>
-                    <div class="text-center" style="color: black;" id="mode-pills">
-                        <div class="btn-group btn-group-sm">
-                            <span class="btn btn-primary mode-pill active" data-value="rgb"
-                                onclick="selectCompVideo(activeMethodPill, activeScenePill, null, this)">
-                                RGB
-                            </span>
-                            <span class="btn btn-primary mode-pill" data-value="depth"
-                                onclick="selectCompVideo(activeMethodPill, activeScenePill, null, this)">
-                                Depth
-                            </span>
-                        </div>
-                    </div>
-
-
-                    <br>
-                    <p class="text-justify" style="text-align: center;">
-                        Baseline method (left) vs ReconFusion (right). Scene trained on <span id="compVideoValue">9</span> views. Try selecting different methods and scenes!
-                    </p>
-                    <script>
-                        video0 = document.getElementById("compVideo0");
-                        video1 = document.getElementById("compVideo1");
-                        video0.addEventListener('loadedmetadata', function() {
-                            if (activeVidID == 0 && select){
-                                video0.play();
-                                // print video size
-                                console.log(video0.videoWidth, video0.videoHeight);
-                                video0.hidden = false;
-                                video1.hidden = true;
-                            }
-                        });
-                        video1.addEventListener('loadedmetadata', function() {
-                            if (activeVidID == 1 && select){
-                                video1.play();
-                                // print video size
-                                console.log(video1.videoWidth, video1.videoHeight);
-                                video0.hidden = true;
-                                video1.hidden = false;
-                            }
-                        });
-                    </script>
-
-                    <div class="pill-row scene-pills" id="scene-pills">
-                        <span class="pill scene-pill" data-value="dtu_scan31" onclick="selectCompVideo(activeMethodPill, this, 3)">
-                            <img class="thumbnail-img" src="thumbnails/dtu_scan31_thumbnail.jpg" alt="DTU/scan31" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="dtu_scan45" onclick="selectCompVideo(activeMethodPill, this, 3)">
-                            <img class="thumbnail-img" src="thumbnails/dtu_scan45_thumbnail.jpg" alt="DTU/scan45" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="llff_fern" onclick="selectCompVideo(activeMethodPill, this, 3)">
-                            <img class="thumbnail-img" src="thumbnails/llff_fern_thumbnail.jpg" alt="LLFF/fern" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="llff_horns" onclick="selectCompVideo(activeMethodPill, this, 3)">
-                            <img class="thumbnail-img" src="thumbnails/llff_horns_thumbnail.jpg" alt="LLFF/horns" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="re10k_00e8df74b6805da7" onclick="selectCompVideo(activeMethodPill, this, 3)">
-                            <img class="thumbnail-img" src="thumbnails/re10k_00e8df74b6805da7_thumbnail.jpg" alt="Re10K/sofa" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="re10k_000c3ab189999a83" onclick="selectCompVideo(activeMethodPill, this, 3)">
-                            <img class="thumbnail-img" src="thumbnails/re10k_000c3ab189999a83_thumbnail.jpg" alt="Re10K/living room" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="co3d_bench_185_19987_38634" onclick="selectCompVideo(activeMethodPill, this, 6)">
-                            <img class="thumbnail-img" src="thumbnails/co3d_bench_185_19987_38634_thumbnail.jpg" alt="CO3D/bench" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="co3d_plant_188_20319_36755" onclick="selectCompVideo(activeMethodPill, this, 6)">
-                            <img class="thumbnail-img" src="thumbnails/co3d_plant_188_20319_36755_thumbnail.jpg" alt="CO3D/plant" width="64">
-                        </span>
-                        <span class="pill scene-pill active" data-value="mipnerf360_bonsai" onclick="selectCompVideo(activeMethodPill, this, 9)">
-                            <img class="thumbnail-img" src="thumbnails/mipnerf360_bonsai_thumbnail.jpg" alt="mip-NeRF 360/bonsai" width="64">
-                        </span>
-                        <span class="pill scene-pill" data-value="mipnerf360_kitchen" onclick="selectCompVideo(activeMethodPill, this, 9)">
-                            <img class="thumbnail-img" src="thumbnails/mipnerf360_kitchen_thumbnail.jpg" alt="mip-NeRF 360/kitchen" width="64">
-                        </span>
-                    </div>
-
-                    <script>
-                        activeMethodPill = document.querySelector('.method-pill.active-pill');
-                        activeScenePill = document.querySelector('.scene-pill.active-pill');
-                        activeModePill = document.querySelector('.mode-pill.active-pill');
-                    </script>
-                </div>
-            </div>
-        </div>
-        <br>
-        <br>
-
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>
-				  ReconFusion improves both few-view and many-view reconstruction
-                </h3><br>
-                <!-- <p class="text-justify" style="color:red">
-                    Hover over the plot to show rendered video under different number of views.
-                </p> -->
-                
-                <!-- top down layout -->
-                <canvas id="sparsityChart" style="max-height: 300px; max-width: 500px; margin: auto;"></canvas>
-                <script src="js/sparsity_chart.js"></script>
-                <br>
-                <p class="text-center">
-                    Our diffusion prior improves performance over baseline Zip-NeRF in both the few-view and many-view sampling regimes.
-                </p>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
     
-                <div class="text-center">
-                    <div class="video-compare-container" id="materialsDiv">
-                        <video class="video" id="sparsity" loop playsinline autoPlay muted src="videos/sparsity/stacked_vid.mp4" onplay="resizeAndPlay(this)"></video>
-                        <canvas height=0 class="videoMerge" id="sparsityMerge"></canvas>
-                    </div>
-                    <!-- <canvas height=0 class="videoWrapper" id="sparsityVideoWrapper"></canvas> -->
-			<em>Move the slider to adjust the number of views. The left column shows the nearest input view.</em>
-                    <div class="slider-container" style="padding-left: 12%; padding-right: 11%;">
-                        <input type="range" class="styled-slider" id="sparsitySlider" min="0" max="6" step="1" value="0" list="slider-labels">
-                        <datalist id="slider-labels">
-                            <option value="0">3</option>
-                            <option value="1">6</option>
-                            <option value="2">9</option>
-                            <option value="3">18</option>
-                            <option value="4">27</option>
-                            <option value="5">54</option>
-                            <option value="6">81</option>
-                        </datalist>
-                    </div>
-                    <table style="text-align: left; padding-left: 0px; padding-right: 10%; width: 100%;">
-                        <tr>
-                            <th width="10%"></th>
-                            <td width="10%">3</td>
-                            <td width="10%">6</td>
-                            <td width="10%">9</td>
-                            <td width="10%">18</td>
-                            <td width="10%">27</td>
-                            <td width="10%">54</td>
-                            <td width="10%">81</td>
-                        </tr>
-                    </table><br>
-                    <!-- <div class="text-center">
-                        Rendered video under <span id="sparsityValue" style="color: red;">3</span> views
-                    </div> -->
-                </div>
-                
-                <!-- left right layout -->
-                <!-- <table style="width: 100%; border-collapse: collapse;">
-                    <tr>
-                      <td style="text-align: center;" >
-                        <canvas id="sparsityChart" style="max-height: 250px; max-width: 200px; margin: auto;"></canvas>
-                        <script src="js/sparsity_chart.js"></script>
-                      </td>
-                      <td style="text-align: center;">
-                        <video class="video" width=100% id="sparsityVideo" loop playsinline autoplay muted onplay="playOnCanvas(this, 180)">
-                            <source src="videos/sparsity/kitchenlego_3.mp4" type="video/mp4" />
-                        </video>
-                        <canvas height=0 class="videoWrapper" id="sparsityVideoWrapper"></canvas>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="text-align: center;"></td>
-                      <td style="text-align: center;">Rendered video under <span id="sparsityValue" style="color: red;">3</span> views</td>
-                    </tr>
-                </table> -->
-<br>
-            </div>
-        </div><br><br>
+    <!-- MathJax 3 -->
+    <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+      svg: { fontCache: 'global' },
+      startup: { pageReady: () => MathJax.startup.defaultPageReady() }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2 text-center">
-                <h3>
-                    ReconFusion distills a consistent 3D model from inconsistent samples
-                </h3><br>
-                
-                <table style="margin-left: auto; margin-right: auto; width: 90%;">
-                    <tr>
-                      <th style="width: 4%;"></th>
-                      <th style="text-align: center;width: 32%;">LLFF (3 views)</th>
-                      <th style="text-align: center;width: 32%;">CO3D (6 views)</th>
-					  <th style="text-align: center;width: 32%;">mip-NeRF 360 (9 views)</th>
-                    </tr>
-                    <tr>
-                      <td style="text-align: center; writing-mode: vertical-lr; transform: rotate(180deg); width:4%">3D Reconstruction</td>
-                      <td rowspan="2" colspan="3" style="width: 96%">
-                        <video class="video" width=100% loop playsinline autoplay muted controls>
-                            <source src="videos/ablation/recon_vs_samples.mp4" />
-                        </video>
-                      </td>
-                      <!-- <td style="text-align: center;">
-                        <video class="video" width=100% loop playsinline autoplay muted style="max-height: 150px;">
-                            <source src="videos/ablation/z123_nerf.mp4" />
-                        </video>
-                      </td>
-                      <td style="text-align: center;">
-                        <video class="video" width=100% loop playsinline autoplay muted style="max-height: 150px;">
-                            <source src="videos/ablation/scratch_nerf.mp4" />
-                        </video>
-                      </td>
-                      <td style="text-align: center;">
-                        <video class="video" width=100% loop playsinline autoplay muted style="max-height: 150px;">
-                            <source src="videos/ablation/ours_nerf.mp4" />
-                        </video>
-                      </td> -->
-                    </tr>
-                    <tr>
-					  <td style="text-align: center; writing-mode: vertical-lr; transform: rotate(180deg); width:4%">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Samples&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td></td>
-                      <!-- <td style="text-align: center;">
-                        <video class="video" width=100% loop playsinline autoplay muted style="max-height: 150px;">
-                            <source src="videos/ablation/z123_samples.mp4" />
-                        </video>
-                      </td>
-                      <td style="text-align: center;">
-                        <video class="video" width=100% loop playsinline autoplay muted style="max-height: 150px;">
-                            <source src="videos/ablation/scratch_samples.mp4" />
-                        </video>
-                      </td>
-                      <td style="text-align: center;">
-                        <video class="video" width=100% loop playsinline autoplay muted style="max-height: 150px;">
-                            <source src="videos/ablation/ours_samples.mp4" />
-                        </video>
-                      </td> -->
-                    </tr>
-                </table>
-                <br>
-<!-- 
-                <p class="text-justify" style="width: 85%; margin: auto;"> -->
-                <p class="text-justify" style="width:85%; margin:auto">
-                    ReconFusion recovers consistent 3D reconstructions (top) from a diffusion model that produces image samples independently for each viewpoint (bottom). These samples are not multiview consistent, but can produce high-quality 3D reconstructions when used as a prior in optimization.
-                </p>
-            </div>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a26;
+            --bg-card-hover: #22223a;
+            --text-primary: #e8e6e3;
+            --text-secondary: #9d9b97;
+            --text-muted: #6b6966;
+            --accent-gold: #d4a853;
+            --accent-gold-dim: #b8912e;
+            --accent-blue: #5b8cd4;
+            --accent-green: #5cc9a7;
+            --accent-red: #e8665d;
+            --accent-purple: #9b7ed8;
+            --border: rgba(255,255,255,0.06);
+            --border-light: rgba(255,255,255,0.12);
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Source Serif 4', 'Georgia', serif;
+            --font-sans: 'DM Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --max-width: 1100px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* ===== NOISE OVERLAY ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(212, 168, 83, 0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 70% 80%, rgba(91, 140, 212, 0.04) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 50%, rgba(155, 126, 216, 0.03) 0%, transparent 40%);
+            animation: heroGlow 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes heroGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(-5%, 3%) scale(1.1); }
+        }
+
+        .hero-badge {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 20px;
+            border: 1px solid var(--accent-gold-dim);
+            border-radius: 100px;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent-gold);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeUp 0.8s 0.2s forwards;
+            backdrop-filter: blur(10px);
+            background: rgba(212, 168, 83, 0.05);
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        .hero-title {
+            position: relative;
+            font-family: var(--font-display);
+            font-size: clamp(2.4rem, 5.5vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.15;
+            max-width: 900px;
+            margin-bottom: 24px;
+            opacity: 0;
+            animation: fadeUp 1s 0.4s forwards;
+        }
+
+        .hero-title .highlight {
+            background: linear-gradient(135deg, var(--accent-gold), #f0d78c, var(--accent-gold-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            position: relative;
+            font-family: var(--font-body);
+            font-size: clamp(1rem, 1.8vw, 1.2rem);
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin-bottom: 48px;
+            font-weight: 300;
+            opacity: 0;
+            animation: fadeUp 1s 0.6s forwards;
+        }
+
+        .hero-meta {
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeUp 1s 0.8s forwards;
+        }
+
+        .hero-meta-item {
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hero-meta-item strong {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .hero-links {
+            position: relative;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            opacity: 0;
+            animation: fadeUp 1s 1s forwards;
+        }
+
+        .hero-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-family: var(--font-sans);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .hero-link.primary {
+            background: var(--accent-gold);
+            color: var(--bg-primary);
+        }
+
+        .hero-link.primary:hover {
+            background: #e0b65d;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(212, 168, 83, 0.3);
+        }
+
+        .hero-link.secondary {
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .hero-link.secondary:hover {
+            border-color: var(--accent-gold-dim);
+            background: rgba(212, 168, 83, 0.08);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== SCROLL INDICATOR ===== */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeUp 1s 1.4s forwards;
+        }
+
+        .scroll-indicator .line {
+            width: 1px;
+            height: 48px;
+            background: linear-gradient(to bottom, var(--accent-gold), transparent);
+            margin: 0 auto;
+            animation: scrollLine 2s infinite;
+        }
+
+        @keyframes scrollLine {
+            0% { transform: scaleY(0); transform-origin: top; }
+            50% { transform: scaleY(1); transform-origin: top; }
+            51% { transform: scaleY(1); transform-origin: bottom; }
+            100% { transform: scaleY(0); transform-origin: bottom; }
+        }
+
+        /* ===== SECTIONS ===== */
+        .section {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 100px 24px;
+        }
+
+        .section-label {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 24px;
+        }
+
+        .section-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 750px;
+            line-height: 1.8;
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .divider-line {
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--border-light), transparent);
+        }
+
+        /* ===== ABSTRACT ===== */
+        .abstract-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 48px;
+            margin-top: 24px;
+        }
+
+        .abstract-text {
+            font-size: 1.05rem;
+            line-height: 1.85;
+            color: var(--text-secondary);
+            max-width: 800px;
+        }
+
+        .abstract-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .abstract-divider {
+            width: 40px;
+            height: 2px;
+            background: var(--border-light);
+            margin: 24px 0;
+        }
+
+        .abstract-highlights {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 8px 0;
+        }
+
+        .abstract-hl {
+            display: flex;
+            gap: 14px;
+            align-items: baseline;
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            padding: 16px 20px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .abstract-hl:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: var(--border-light);
+        }
+
+        .abstract-hl-icon {
+            font-family: var(--font-sans);
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        /* ===== KEY RESULTS STRIP ===== */
+        .results-strip {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 60px 24px;
+        }
+
+        .results-grid {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+        }
+
+        .result-card {
+            text-align: center;
+        }
+
+        .result-value {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-gold), #f0d78c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .result-label {
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 8px;
+        }
+
+        .result-detail {
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ===== FIGURE CONTAINERS ===== */
+        .figure-container {
+            margin: 48px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .figure-container img {
+            width: 100%;
+            display: block;
+            background: #fff;
+            padding: 16px;
+        }
+
+        .figure-container.no-pad img {
+            padding: 0;
+        }
+
+        .figure-caption {
+            padding: 20px 24px;
+            font-family: var(--font-sans);
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            border-top: 1px solid var(--border);
+        }
+
+        .figure-caption strong {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        /* ===== NON-STATIONARITY GRID ===== */
+        .ns-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 48px 0;
+        }
+
+        .ns-card {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            transition: var(--transition);
+        }
+
+        .ns-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+
+        .ns-card img {
+            width: 100%;
+            display: block;
+            background: #fff;
+            padding: 8px;
+        }
+
+        .ns-card-label {
+            padding: 12px 16px;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            border-top: 1px solid var(--border);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== SDE EQUATION BLOCK ===== */
+        .equation-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 8px;
+            padding: 32px;
+            margin: 32px 0;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* MathJax dark theme */
+        mjx-container[jax="SVG"] { direction: ltr; }
+        mjx-container svg { color: var(--text-primary); }
+        mjx-container { color: var(--text-primary) !important; }
+
+        /* ===== CONTRIBUTIONS ===== */
+        .contrib-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .contrib-card {
+            padding: 28px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            transition: var(--transition);
+        }
+
+        .contrib-card:hover {
+            border-color: var(--accent-gold-dim);
+            background: var(--bg-card-hover);
+        }
+
+        .contrib-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .contrib-card:nth-child(1) .contrib-icon { background: rgba(212, 168, 83, 0.15); }
+        .contrib-card:nth-child(2) .contrib-icon { background: rgba(91, 140, 212, 0.15); }
+        .contrib-card:nth-child(3) .contrib-icon { background: rgba(92, 201, 167, 0.15); }
+
+        .contrib-card h4 {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .contrib-card p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* ===== TABLE SECTION ===== */
+        .table-scroll {
+            overflow-x: auto;
+            margin: 32px 0;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table.results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-sans);
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .results-table thead {
+            background: var(--bg-card);
+        }
+
+        .results-table th {
+            padding: 14px 16px;
+            font-weight: 600;
+            text-align: center;
+            border-bottom: 2px solid var(--border-light);
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .results-table td {
+            padding: 10px 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-table .category-cell {
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .results-table .ours-row {
+            background: rgba(212, 168, 83, 0.06);
+        }
+
+        .results-table .ours-row td {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .results-table .best {
+            color: var(--accent-red) !important;
+            font-weight: 700 !important;
+        }
+
+        /* ===== TWO COL LAYOUT ===== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+            margin: 48px 0;
+        }
+
+        .two-col .col-text {
+            padding: 20px 0;
+        }
+
+        .two-col .col-text h3 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .two-col .col-text p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* ===== BIBTEX ===== */
+        .bibtex-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+            position: relative;
+        }
+
+        .bibtex-block pre {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 24px;
+            text-align: center;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ===== NAVIGATION ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            backdrop-filter: blur(20px);
+            background: rgba(10, 10, 15, 0.8);
+            border-bottom: 1px solid var(--border);
+            transform: translateY(-100%);
+            transition: transform 0.4s ease;
+        }
+
+        .nav.visible {
+            transform: translateY(0);
+        }
+
+        .nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+
+        .nav a:hover {
+            color: var(--accent-gold);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .ns-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .contrib-grid {
+                grid-template-columns: 1fr;
+            }
+            .abstract-card {
+                padding: 28px 20px;
+            }
+        }
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(32px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== INLINE EQUATION COLORS ===== */
+        .eq-drift { color: var(--accent-blue); font-weight: 600; }
+        .eq-diff { color: var(--accent-green); font-weight: 600; }
+        .eq-jump { color: var(--accent-red); font-weight: 600; }
+        .eq-market { color: var(--accent-purple); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav" id="nav">
+    <a href="#abstract">Abstract</a>
+    <a href="#method">Method</a>
+    <a href="#results">Results</a>
+    <a href="#case-study">Case Study</a>
+    <a href="#citation">Citation</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-badge">
+        <span></span> KDD 2026 · Jeju, Korea
+    </div>
+
+    <h1 class="hero-title">
+        Lifting the Veil of<br>
+        <span class="highlight">Non-Stationarity</span><br>
+        in Financial Market
+    </h1>
+
+    <p class="hero-subtitle">
+        A Market-State Jump Diffusion Framework that bridges explicit stochastic physics with implicit multi-modal LLM reasoning for robust financial prediction.
+    </p>
+
+    <div class="hero-meta">
+        <span class="hero-meta-item"><strong>Anonymous Author(s)</strong></span>
+        <span class="hero-meta-item">KDD'26 · Under Review</span>
+    </div>
+
+    <div class="hero-links">
+        <a class="hero-link primary" href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            Paper (PDF)
+        </a>
+        <a class="hero-link secondary" href="https://github.com/kdd2026-anonymous-submission1640/kdd2026-anonymous-submission1640">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+            Code
+        </a>
+        <a class="hero-link secondary" href="#">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Slides
+        </a>
+    </div>
+
+    <div class="scroll-indicator">
+        <div class="line"></div>
+    </div>
+</section>
+
+<!-- Key Results Strip -->
+<div class="results-strip">
+    <div class="results-grid">
+        <div class="result-card reveal">
+            <div class="result-value">95.1%</div>
+            <div class="result-label">Annual Return Rate</div>
+            <div class="result-detail">TSLA Dataset</div>
         </div>
-        <br>
-        <br>
+        <div class="result-card reveal">
+            <div class="result-value">2.25</div>
+            <div class="result-label">Sharpe Ratio</div>
+            <div class="result-detail">TSLA · Best across all methods</div>
+        </div>
+        <div class="result-card reveal">
+            <div class="result-value">70%↓</div>
+            <div class="result-label">Prediction Error</div>
+            <div class="result-detail">vs. baselines on crash events</div>
+        </div>
+        <div class="result-card reveal">
+            <div class="result-value">69%↑</div>
+            <div class="result-label">SR Improvement</div>
+            <div class="result-detail">via adversarial masking training</div>
+        </div>
+    </div>
+</div>
 
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>
-                    Citation
-                </h3>
-                <div class="form-group col-md-10 col-md-offset-1">
-				  <p class="text-justify">
-                    <textarea id="bibtex" class="form-control" readonly>
-@article{wu2023reconfusion,
-    title={ReconFusion: 3D Reconstruction with Diffusion Priors},
-    author={Rundi Wu and Ben Mildenhall and Philipp Henzler and 
-			Keunhong Park and Ruiqi Gao and Daniel Watson and 
-			Pratul P. Srinivasan and Dor Verbin and Jonathan T. Barron 
-			and Ben Poole and Aleksander Holynski},
-    journal={arXiv},
-    year={2023}
-	}</textarea></p>
+<!-- Abstract -->
+<section class="section" id="abstract">
+    <div class="reveal">
+        <div class="section-label">Abstract</div>
+        <div class="abstract-card">
+            <div class="abstract-text">
+                Financial asset price movement prediction is inherently challenging due to the <strong>non-stationary nature</strong> of financial markets, where data distributions shift over time. Existing methods often assume that the market is stationary, which limits their applicability.
+            </div>
+            <div class="abstract-divider"></div>
+            <div class="abstract-text">
+                To address this, we propose the <strong>Market-State Jump Diffusion Framework (MSJD)</strong>, which models non-stationarity through two key components:
+            </div>
+            <div class="abstract-highlights">
+                <div class="abstract-hl">
+                    <span class="abstract-hl-icon" style="color: var(--accent-gold);">①</span>
+                    <span><strong style="color: var(--accent-gold);">Explicit Market-State Jump Diffusion Process (EMJD)</strong> — captures dynamics of diffusion, drift, and jump processes governed by latent market states via stochastic differential equations solved by neural networks.</span>
+                </div>
+                <div class="abstract-hl">
+                    <span class="abstract-hl-icon" style="color: var(--accent-blue);">②</span>
+                    <span><strong style="color: var(--accent-blue);">Implicit Market-State Jump Diffusion Process (IMJD)</strong> — integrates these components into a multi-modal LLM, enabling predictions across varying market conditions through temporal point encoding and jump diffusion embeddings.</span>
+                </div>
+                <div class="abstract-hl">
+                    <span class="abstract-hl-icon" style="color: var(--accent-green);">③</span>
+                    <span><strong style="color: var(--accent-green);">General Modality Synthesizer</strong> — employs a unified adversarial masking strategy to complete missing modalities and fine-tune the prediction model.</span>
                 </div>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>
-                    Acknowledgements
-                </h3>
-                <p class="text-justify">
-                We would like to thank Arthur Brussee, Ricardo Martin-Brualla, Rick Szeliski, Peter Hedman, Jason Baldridge, and Angjoo Kanazawa for their valuable contributions in discussing the project and reviewing the manuscript, and Zhicheng Wang for setting up some of the data loaders necessary for our diffusion model training pipeline. We are grateful to Randy Persaud and Henna Nandwani for infrastructure support. We also extend our gratitude to Shlomi Fruchter, Kevin Murphy, Mohammad Babaeizadeh, Han Zhang and Amir Hertz for training the base text-to-image latent diffusion model.
-                    <br><br>
-                The website template was borrowed from <a href="http://mgharbi.com/">Michaël Gharbi</a> and <a href="https://dorverbin.github.io/refnerf">Ref-NeRF</a>.
-                </p>
+            <div class="abstract-divider"></div>
+            <div class="abstract-text">
+                Extensive experiments on real-world stock and cryptocurrency datasets demonstrate that our method <strong>significantly outperforms</strong> existing approaches in predicting price movements.
             </div>
         </div>
     </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Motivation: Non-Stationarity -->
+<section class="section" id="motivation">
+    <div class="reveal">
+        <div class="section-label">Motivation</div>
+        <h2 class="section-title">Financial Markets Are Non-Stationary</h2>
+        <p class="section-desc">
+            Real financial market environments are dynamic — statistical processes and joint distributions change over time through different mechanisms. We identify four fundamental types of distributional change:
+        </p>
+    </div>
+
+    <div class="ns-grid reveal">
+        <div class="ns-card">
+            <img src="img/fig1a_diffusion.png" alt="Diffusion">
+            <div class="ns-card-label"><span class="eq-diff">Diffusion</span></div>
+        </div>
+        <div class="ns-card">
+            <img src="img/fig1b_drift.png" alt="Drift">
+            <div class="ns-card-label"><span class="eq-drift">Drift</span></div>
+        </div>
+        <div class="ns-card">
+            <img src="img/fig1c_jump.png" alt="Jump">
+            <div class="ns-card-label"><span class="eq-jump">Jump</span></div>
+        </div>
+        <div class="ns-card">
+            <img src="img/fig1d_hybrid.png" alt="Hybrid">
+            <div class="ns-card-label"><span class="eq-market">Hybrid</span></div>
+        </div>
+    </div>
+
+    <div class="equation-block reveal">
+        <div style="font-family: var(--font-sans); font-weight: 600; font-size: 0.95rem; margin-bottom: 20px; color: var(--text-primary);">Market-State Jump Diffusion SDE</div>
+        <div style="font-size: 1.15rem;">
+        \[
+        dS(t) = \underset{\color{#5b8cd4}{\textbf{Drift}}}{\underline{\mu_S(t, M(t))\,dt}} \;+\; \underset{\color{#5cc9a7}{\textbf{Diffusion}}}{\underline{\sigma_S(t, M(t))\,dW(t)}} \;+\; \underset{\color{#e8665d}{\textbf{Jump}}}{\underline{J(t, M(t))\,dN(t)}}
+        \]
+        </div>
+    </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Method -->
+<section class="section" id="method">
+    <div class="reveal">
+        <div class="section-label">Method</div>
+        <h2 class="section-title">Market-State Jump Diffusion Framework</h2>
+        <p class="section-desc">
+            MSJD consists of two stages: a <strong>General Modality Synthesizer (MSJD-S)</strong> that completes missing data modalities, and a <strong>General Jump-Diffusion Point Process (MSJD-M)</strong> that combines explicit SDE-based modeling with implicit multi-modal LLM reasoning.
+        </p>
+    </div>
+
+    <div class="figure-container reveal">
+        <img src="img/fig2_overview.png" alt="MSJD Framework Overview">
+        <div class="figure-caption">
+            <strong>Figure 2.</strong> Overview of the MSJD Framework. The MSJD-S module first completes any missing data modalities. These complete data are then input into the MSJD-M module: (1) The EMJD utilizes a Neural SDE to compute the drift, diffusion, and jump terms. (2) The IMJD subsequently uses these terms to reprogram a LLM for the final prediction.
+        </div>
+    </div>
+
+    <!-- Contributions -->
+    <div class="contrib-grid reveal">
+        <div class="contrib-card">
+            <div class="contrib-icon">⚡</div>
+            <h4>Explicit Market-State Jump Diffusion (EMJD)</h4>
+            <p>A Neural SDE explicitly models market state dynamics through drift, diffusion, and jump processes. Monte Carlo simulation provides supervision without circularity, while a Neural ODE captures latent market state evolution.</p>
+        </div>
+        <div class="contrib-card">
+            <div class="contrib-icon">🧠</div>
+            <h4>Implicit Market-State Jump Diffusion (IMJD)</h4>
+            <p>Integrates jump diffusion information into a multi-modal LLM via temporal point position encoding, a 2D router for modality-process selection, and jump diffusion embeddings that decompose into trend, seasonal, and residual components.</p>
+        </div>
+        <div class="contrib-card">
+            <div class="contrib-icon">🔄</div>
+            <h4>General Modality Synthesizer (GMS)</h4>
+            <p>Handles missing modalities through unified adversarial masking post-training. Uses inner/inter-modality mask strategies and adversarial training between GMS (generator) and IMJD (discriminator).</p>
+        </div>
+    </div>
+
+    <!-- IMJD Detail -->
+    <div class="two-col reveal">
+        <div class="col-text">
+            <h3>Implicit Market-State Jump Diffusion Process</h3>
+            <p>
+                The IMJD uses a multi-modal LLM to represent the market-state jump diffusion process implicitly. Temporal point position embedding aligns all modalities along the time dimension. A 2D router selects effective modalities and stochastic processes. The mean embedding is decomposed into trend, seasonal, and residual components — mapped to <span class="eq-drift">drift (μ)</span>, <span class="eq-diff">diffusion (σ)</span>, and <span class="eq-jump">jump (J)</span> respectively — modulated by explicit Neural SDE outputs.
+            </p>
+            <br>
+            <p>
+                A <strong>Jump-Aware Attention</strong> mechanism dynamically adjusts the attention horizon based on market volatility — sharpening focus on recent features during high-volatility regimes and attending to longer-term patterns during stable periods.
+            </p>
+        </div>
+        <div class="figure-container" style="margin: 0;">
+            <img src="img/fig3_imjd.png" alt="IMJD Architecture">
+            <div class="figure-caption"><strong>Figure 3.</strong> Implicit Market-State Jump Diffusion Process architecture.</div>
+        </div>
+    </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Results -->
+<section class="section" id="results">
+    <div class="reveal">
+        <div class="section-label">Experiments</div>
+        <h2 class="section-title">State-of-the-Art Performance</h2>
+        <p class="section-desc">
+            Extensive evaluation on five US stocks (AAPL, AMZN, GOOGL, MSFT, TSLA) and one cryptocurrency (ETHUSD) using image, text, audio, and time-series data. MSJD outperforms all baselines across every metric.
+        </p>
+    </div>
+
+    <!-- Performance Table -->
+    <div class="table-scroll reveal">
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th colspan="2" style="text-align:left">Method</th>
+                    <th colspan="3">AAPL</th>
+                    <th colspan="3">AMZN</th>
+                    <th colspan="3">GOOGL</th>
+                    <th colspan="3">MSFT</th>
+                    <th colspan="3">TSLA</th>
+                    <th colspan="3">ETHUSD</th>
+                </tr>
+                <tr>
+                    <th style="text-align:left">Category</th>
+                    <th style="text-align:left">Model</th>
+                    <th>ARR↑</th><th>SR↑</th><th>MDD↓</th>
+                    <th>ARR↑</th><th>SR↑</th><th>MDD↓</th>
+                    <th>ARR↑</th><th>SR↑</th><th>MDD↓</th>
+                    <th>ARR↑</th><th>SR↑</th><th>MDD↓</th>
+                    <th>ARR↑</th><th>SR↑</th><th>MDD↓</th>
+                    <th>ARR↑</th><th>SR↑</th><th>MDD↓</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="category-cell">Market</td><td class="category-cell">B&H</td>
+                    <td>13.0</td><td>0.6</td><td>14.78</td>
+                    <td>42.33</td><td>1.08</td><td>17.38</td>
+                    <td>22.47</td><td>0.71</td><td>12.97</td>
+                    <td>22.49</td><td>0.84</td><td>12.97</td>
+                    <td>37.4</td><td>0.72</td><td>32.65</td>
+                    <td>29.26</td><td>0.87</td><td>23.21</td>
+                </tr>
+                <tr>
+                    <td class="category-cell">ML&DL</td><td class="category-cell">Transformer</td>
+                    <td>17.11</td><td>0.96</td><td>7.53</td>
+                    <td>32.66</td><td>1.11</td><td>4.96</td>
+                    <td>13.69</td><td>0.46</td><td>14.36</td>
+                    <td>17.44</td><td>1.46</td><td>2.59</td>
+                    <td>39.7</td><td>1.04</td><td>8.17</td>
+                    <td>31.0</td><td>1.02</td><td>12.93</td>
+                </tr>
+                <tr>
+                    <td class="category-cell">RL</td><td class="category-cell">PPO</td>
+                    <td>13.26</td><td>0.61</td><td>14.78</td>
+                    <td>23.83</td><td>0.64</td><td>16.89</td>
+                    <td>28.1</td><td>1.22</td><td>15.96</td>
+                    <td>20.22</td><td>0.87</td><td>8.46</td>
+                    <td>33.64</td><td>0.74</td><td>15.37</td>
+                    <td>25.94</td><td>0.31</td><td>11.12</td>
+                </tr>
+                <tr>
+                    <td class="category-cell">LLM</td><td class="category-cell">FinMem</td>
+                    <td>23.78</td><td>1.11</td><td>10.39</td>
+                    <td>31.6</td><td>0.97</td><td>10.0</td>
+                    <td>25.61</td><td>1.45</td><td>8.14</td>
+                    <td>25.1</td><td>1.09</td><td>7.46</td>
+                    <td>50.04</td><td>0.92</td><td>9.62</td>
+                    <td>44.72</td><td>1.27</td><td>15.59</td>
+                </tr>
+                <tr>
+                    <td class="category-cell">LLM</td><td class="category-cell">FinAgent</td>
+                    <td>31.9</td><td>1.43</td><td>10.4</td>
+                    <td>65.1</td><td>1.61</td><td>12.14</td>
+                    <td>56.15</td><td>1.78</td><td>8.45</td>
+                    <td>44.74</td><td>1.79</td><td>5.57</td>
+                    <td>92.27</td><td>2.0</td><td>12.14</td>
+                    <td>43.08</td><td>1.8</td><td>12.72</td>
+                </tr>
+                <tr>
+                    <td class="category-cell">LLM</td><td class="category-cell">FinCon</td>
+                    <td>27.35</td><td>1.7</td><td>15.27</td>
+                    <td>24.85</td><td>0.90</td><td>25.89</td>
+                    <td>25.08</td><td>1.05</td><td>17.53</td>
+                    <td>31.63</td><td>1.54</td><td>15.01</td>
+                    <td>82.87</td><td>1.97</td><td>29.73</td>
+                    <td>—</td><td>—</td><td>—</td>
+                </tr>
+                <tr class="ours-row">
+                    <td class="category-cell" style="color: var(--accent-gold)">Ours</td>
+                    <td class="category-cell" style="color: var(--accent-gold)">MSJD</td>
+                    <td class="best">35.6</td><td class="best">1.86</td><td class="best">8.6</td>
+                    <td class="best">68.8</td><td class="best">1.91</td><td class="best">10.38</td>
+                    <td class="best">59.63</td><td class="best">1.97</td><td class="best">8.15</td>
+                    <td class="best">46.66</td><td class="best">1.93</td><td class="best">4.00</td>
+                    <td class="best">95.14</td><td class="best">2.25</td><td class="best">11.34</td>
+                    <td class="best">46.01</td><td class="best">2.14</td><td class="best">9.05</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Performance Chart -->
+    <div class="figure-container reveal">
+        <img src="img/fig4_portfolio_curves.png" alt="Performance comparison over time">
+        <div class="figure-caption">
+            <strong>Figure 4.</strong> Performance comparison over time between MSJD and benchmarks across all assets. 5× leveraged portfolio value (×10). MSJD (darkest line) consistently achieves superior cumulative returns with lower drawdowns.
+        </div>
+    </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Case Study -->
+<section class="section" id="case-study">
+    <div class="reveal">
+        <div class="section-label">Case Study</div>
+        <h2 class="section-title">TSLA Oct 2023 Crash — A Black Swan Event</h2>
+        <p class="section-desc">
+            We validate MSJD on the Tesla earnings crash of October 2023, a classic jump-diffusion regime shift where market dynamics abruptly transitioned from a diffusion-dominated phase to a jump-dominated phase.
+        </p>
+    </div>
+
+    <div class="two-col reveal">
+        <div class="col-text">
+            <h3>Why MSJD Succeeds Where Others Fail</h3>
+            <p>
+                Traditional momentum models (LSTM, PatchTST) failed catastrophically, continuing to predict upward trends due to historical inertia. FinGPT identified negative sentiment but predicted only a conservative -2.1% decline.
+            </p>
+            <br>
+            <p>
+                <strong>MSJD accurately forecasted the -8.4% crash</strong> (close to the actual -9.3%), reducing prediction error by over 70%.
+            </p>
+            <br>
+            <p>
+                <span class="eq-jump">Physics Channel:</span> The EMJD module's jump intensity λ(t) surged from 0.05 to 0.92, signaling a regime shift and forcing the model to abandon mean-reverting assumptions.
+            </p>
+            <br>
+            <p>
+                <span class="eq-drift">Semantics Channel:</span> The router dynamically shifted attention from Price History to News Signals during the event, intelligently switching focus to the semantic source of the crash.
+            </p>
+        </div>
+        <div class="figure-container" style="margin: 0;">
+            <img src="img/fig5_tsla_case.png" alt="TSLA Case Study">
+            <div class="figure-caption">
+                <strong>Figure 5.</strong> (a) MSJD captures the crash trend. (b) Only MSJD predicts the correct magnitude. (c) Jump Intensity λ spikes. (d) Attention shifts from Price to News.
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Ablation -->
+<section class="section" id="ablation">
+    <div class="reveal">
+        <div class="section-label">Analysis</div>
+        <h2 class="section-title">Component Contributions & Robustness</h2>
+    </div>
+
+    <div class="two-col reveal">
+        <div>
+            <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Ablation Study</h3>
+            <div class="table-scroll">
+                <table class="results-table">
+                    <thead>
+                        <tr><th>P</th><th>E</th><th>A</th><th>R</th><th>AT</th><th>MT</th><th>TSLA SR↑</th><th>ETH SR↑</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>✓</td><td></td><td></td><td></td><td></td><td></td><td>1.33</td><td>1.57</td></tr>
+                        <tr><td>✓</td><td>✓</td><td></td><td></td><td></td><td></td><td>1.34</td><td>1.65</td></tr>
+                        <tr><td>✓</td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>1.63</td><td>1.77</td></tr>
+                        <tr><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td></td><td></td><td>1.84</td><td>1.80</td></tr>
+                        <tr><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td></td><td>1.96</td><td>1.82</td></tr>
+                        <tr class="ours-row"><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td class="best">2.25</td><td class="best">2.14</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-family: var(--font-sans);">
+                P: Temporal Position Encoding · E: Jump Diffusion Embedding · A: Jump Diffusion Attention · R: Router · AT: Adversarial Training · MT: Mask Training
+            </p>
+        </div>
+        <div>
+            <h3 style="font-family: var(--font-display); margin-bottom: 16px;">Non-Stationary Adaptation</h3>
+            <div class="table-scroll">
+                <table class="results-table">
+                    <thead>
+                        <tr><th style="text-align:left">Method</th><th>AAPL</th><th>AMZN</th><th>GOOGL</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="category-cell">FinAgent (Stationary)</td><td>1.99</td><td>1.89</td><td>2.10</td></tr>
+                        <tr><td class="category-cell">FinAgent (Non-Stat.)</td><td>0.87</td><td>1.33</td><td>1.41</td></tr>
+                        <tr><td class="category-cell">FinAgent (Hybrid)</td><td>1.43</td><td>1.61</td><td>1.78</td></tr>
+                        <tr><td class="category-cell" style="color:var(--accent-gold)">MSJD (Stationary)</td><td>2.08</td><td>2.13</td><td>2.11</td></tr>
+                        <tr><td class="category-cell" style="color:var(--accent-gold)">MSJD (Non-Stat.)</td><td>1.64</td><td>1.69</td><td>1.83</td></tr>
+                        <tr class="ours-row"><td class="category-cell" style="color:var(--accent-gold)">MSJD (Hybrid)</td><td class="best">1.86</td><td class="best">1.91</td><td class="best">1.97</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 12px; font-family: var(--font-sans);">
+                MSJD maintains consistent SR 1.86–1.97 across different market regimes, demonstrating robust handling of distribution shifts.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stochastic Process Comparison -->
+    <div class="contrib-grid reveal" style="margin-top: 48px;">
+        <div class="contrib-card">
+            <div class="contrib-icon">📊</div>
+            <h4>vs. Alternative Stochastic Processes</h4>
+            <p>MSJD (+12.84% ARR, +0.31 SR, -2.87% MDD vs. GBM) confirms that high-growth assets are driven by momentum and discontinuous shocks rather than simple mean-reversion.</p>
+        </div>
+        <div class="contrib-card">
+            <div class="contrib-icon">🔧</div>
+            <h4>Missing Modality Robustness</h4>
+            <p>The GMS maintains SR ≥ 2.08 even with missing modalities, compared to SR drops to 1.72–1.82 without the synthesizer. Demonstrates effective cross-modal completion.</p>
+        </div>
+        <div class="contrib-card">
+            <div class="contrib-icon">📈</div>
+            <h4>Statistical Significance</h4>
+            <p>Diebold-Mariano test confirms statistically significant superiority (DM > 1.96, p < 0.01) against both PatchTST and FinAgent baselines.</p>
+        </div>
+    </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div></div>
+
+<!-- Citation -->
+<section class="section" id="citation">
+    <div class="reveal">
+        <div class="section-label">Citation</div>
+        <h2 class="section-title">BibTeX</h2>
+        <div class="bibtex-block">
+            <button class="copy-btn" onclick="copyBibtex()">Copy</button>
+            <pre><code>@inproceedings{anonymous2026msjd,
+  title     = {Lifting the Veil of Non-Stationarity in Financial Market},
+  author    = {Anonymous Author(s)},
+  booktitle = {Proceedings of the 32nd ACM SIGKDD Conference on 
+               Knowledge Discovery and Data Mining V.2 (KDD'26)},
+  year      = {2026},
+  address   = {Jeju, Korea}
+}</code></pre>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>MSJD · KDD 2026 · Lifting the Veil of Non-Stationarity in Financial Market</p>
+    <p style="margin-top: 8px; font-size: 0.75rem;">Website template inspired by academic project pages.</p>
+</footer>
+
+<script>
+    // Nav visibility on scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > window.innerHeight * 0.5) {
+            nav.classList.add('visible');
+        } else {
+            nav.classList.remove('visible');
+        }
+    });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // Copy bibtex
+    function copyBibtex() {
+        const text = document.querySelector('.bibtex-block code').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = 'Copy', 2000);
+        });
+    }
+</script>
+
 </body>
 </html>
